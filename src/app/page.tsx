@@ -1,65 +1,136 @@
-import Image from "next/image";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+import { format } from "date-fns";
+import Link from "next/link";
+import { Card } from "@/components/ui/Card";
+import { ScoreTrendChart } from "@/components/charts/ScoreTrendChart";
 
-export default function Home() {
+export default async function DashboardPage() {
+  const session = await auth();
+
+  const allOutings = await prisma.outing.findMany({
+    include: { user: true },
+    orderBy: { date: "desc" },
+  });
+
+  const totalOutings = allOutings.length;
+  const totalCaught = allOutings.reduce((s, o) => s + o.caught, 0);
+  const totalScore = allOutings.reduce((s, o) => s + o.score, 0);
+  const avgScore = totalOutings > 0 ? Math.round(totalScore / totalOutings) : 0;
+  const bestScore = totalOutings > 0 ? Math.max(...allOutings.map((o) => o.score)) : 0;
+  const totalMinutes = allOutings.reduce((s, o) => s + (o.timeSpentMin || 0), 0);
+  const totalHours = Math.round(totalMinutes / 60);
+
+  const recent = allOutings.slice(0, 5);
+
+  const chartData = [...allOutings]
+    .sort((a, b) => a.date.getTime() - b.date.getTime())
+    .map((o) => ({
+      date: format(o.date, "MMM d"),
+      score: o.score,
+    }));
+
+  let myStats = null;
+  if (session?.user?.id) {
+    const myOutings = allOutings.filter((o) => o.userId === session.user!.id);
+    if (myOutings.length > 0) {
+      myStats = {
+        totalOutings: myOutings.length,
+        totalCaught: myOutings.reduce((s, o) => s + o.caught, 0),
+        avgScore: Math.round(myOutings.reduce((s, o) => s + o.score, 0) / myOutings.length),
+        bestScore: Math.max(...myOutings.map((o) => o.score)),
+        totalHours: Math.round(myOutings.reduce((s, o) => s + (o.timeSpentMin || 0), 0) / 60),
+      };
+    }
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div>
+      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+
+      {myStats && (
+        <>
+          <h2 className="text-lg font-semibold mb-3">My Stats</h2>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+            <Card className="text-center">
+              <p className="text-2xl font-bold">{myStats.totalOutings}</p>
+              <p className="text-xs text-gray-500">My Outings</p>
+            </Card>
+            <Card className="text-center">
+              <p className="text-2xl font-bold text-green-600">{myStats.totalCaught}</p>
+              <p className="text-xs text-gray-500">Fish Caught</p>
+            </Card>
+            <Card className="text-center">
+              <p className="text-2xl font-bold text-blue-600">{myStats.avgScore}</p>
+              <p className="text-xs text-gray-500">Avg Score</p>
+            </Card>
+            <Card className="text-center">
+              <p className="text-2xl font-bold text-purple-600">{myStats.bestScore}</p>
+              <p className="text-xs text-gray-500">Best Score</p>
+            </Card>
+            <Card className="text-center">
+              <p className="text-2xl font-bold">{myStats.totalHours}</p>
+              <p className="text-xs text-gray-500">Hours Fished</p>
+            </Card>
+          </div>
+        </>
+      )}
+
+      <h2 className="text-lg font-semibold mb-3">Global Stats</h2>
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+        <Card className="text-center">
+          <p className="text-2xl font-bold">{totalOutings}</p>
+          <p className="text-xs text-gray-500">Total Outings</p>
+        </Card>
+        <Card className="text-center">
+          <p className="text-2xl font-bold text-green-600">{totalCaught}</p>
+          <p className="text-xs text-gray-500">Total Caught</p>
+        </Card>
+        <Card className="text-center">
+          <p className="text-2xl font-bold text-blue-600">{avgScore}</p>
+          <p className="text-xs text-gray-500">Avg Score</p>
+        </Card>
+        <Card className="text-center">
+          <p className="text-2xl font-bold text-purple-600">{bestScore}</p>
+          <p className="text-xs text-gray-500">Best Score</p>
+        </Card>
+        <Card className="text-center">
+          <p className="text-2xl font-bold">{totalHours}</p>
+          <p className="text-xs text-gray-500">Total Hours</p>
+        </Card>
+      </div>
+
+      {chartData.length > 1 && (
+        <Card className="mb-8">
+          <h2 className="font-semibold mb-4">Score Trend</h2>
+          <ScoreTrendChart data={chartData} />
+        </Card>
+      )}
+
+      <h2 className="text-lg font-semibold mb-3">Recent Outings</h2>
+      <Card>
+        <div className="divide-y divide-gray-100">
+          {recent.map((outing) => (
+            <div key={outing.id} className="py-3 flex justify-between items-center">
+              <div>
+                <Link href={`/outings/${outing.id}`} className="font-medium text-blue-600 hover:underline">
+                  {outing.location}
+                </Link>
+                <p className="text-xs text-gray-500">
+                  {format(outing.date, "MMM d, yyyy")} by{" "}
+                  <Link href={`/users/${outing.userId}`} className="hover:underline">
+                    {outing.user.name}
+                  </Link>
+                </p>
+              </div>
+              <span className="font-semibold text-blue-600">{outing.score} pts</span>
+            </div>
+          ))}
+          {recent.length === 0 && (
+            <p className="py-8 text-center text-gray-500">No outings yet.</p>
+          )}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </Card>
     </div>
   );
 }
