@@ -46,7 +46,7 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+      <h1 className="text-2xl font-bold mb-6">Dashboard promotion test</h1>
 
       {myStats && (
         <>
