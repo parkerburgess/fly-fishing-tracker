@@ -1,10 +1,8 @@
-import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import dal from "@/lib/dal";
+import { getUserId } from "@/lib/auth";
 import { format } from "date-fns";
 import { OutingsTable } from "@/components/outings/OutingsTable";
-
-type SortField = "date" | "location" | "score" | "author";
-type SortDir = "asc" | "desc";
+import type { OutingSortField, SortDir } from "@/types";
 
 export default async function OutingsPage({
   searchParams,
@@ -12,23 +10,14 @@ export default async function OutingsPage({
   searchParams: Promise<{ sort?: string; dir?: string }>;
 }) {
   const { sort, dir } = await searchParams;
-  const sortField = (sort as SortField) || "date";
+  const sortField = (sort as OutingSortField) || "date";
   const sortDir = (dir as SortDir) || "desc";
 
-  const orderBy: Record<string, unknown> =
-    sortField === "author"
-      ? { user: { name: sortDir } }
-      : { [sortField]: sortDir };
-
-  const outings = await prisma.outing.findMany({
-    include: { user: true },
-    orderBy,
-  });
-
-  const session = await auth();
+  const outings = await dal.getAllOutings(sortField, sortDir);
+  const userId = await getUserId();
 
   const serialized = outings.map((o) => ({
-    id: o.id,
+    id: String(o.id),
     date: format(o.date, "MMM d, yyyy"),
     location: o.location,
     score: o.score,
@@ -36,13 +25,13 @@ export default async function OutingsPage({
     lost: o.lost,
     missed: o.missed,
     userId: o.userId,
-    userName: o.user.name,
+    userName: o.userDisplayName,
   }));
 
   return (
     <OutingsTable
       outings={serialized}
-      currentUserId={session?.user?.id ?? null}
+      currentUserId={userId}
       sortField={sortField}
       sortDir={sortDir}
     />

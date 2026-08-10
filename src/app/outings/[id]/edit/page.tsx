@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import dal from "@/lib/dal";
+import { getUserId } from "@/lib/auth";
 import { notFound, redirect } from "next/navigation";
 import { format } from "date-fns";
 import { OutingForm } from "@/components/outings/OutingForm";
@@ -11,14 +11,15 @@ export default async function EditOutingPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const session = await auth();
+  const outingId = Number(id);
+  if (!Number.isInteger(outingId)) notFound();
 
-  if (!session?.user?.id) redirect("/login");
+  const userId = await getUserId();
 
-  const outing = await prisma.outing.findUnique({ where: { id } });
+  const outing = await dal.getOuting(outingId);
 
   if (!outing) notFound();
-  if (outing.userId !== session.user.id) redirect("/outings");
+  if (outing.userId !== userId) redirect("/outings");
 
   const initialData = {
     date: format(outing.date, "yyyy-MM-dd"),

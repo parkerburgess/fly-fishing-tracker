@@ -1,28 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { getUserId } from "@/lib/auth";
+import dal from "@/lib/dal";
 import { writeFile } from "fs/promises";
 import path from "path";
 import { randomUUID } from "crypto";
 
 export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const userId = await getUserId();
 
   const formData = await req.formData();
   const file = formData.get("file") as File | null;
-  const outingId = formData.get("outingId") as string | null;
+  const outingIdRaw = formData.get("outingId") as string | null;
   const caption = formData.get("caption") as string | null;
 
-  if (!file || !outingId) {
+  if (!file || !outingIdRaw) {
     return NextResponse.json({ error: "File and outingId required" }, { status: 400 });
   }
 
-  const outing = await prisma.outing.findUnique({ where: { id: outingId } });
-  if (!outing || outing.userId !== session.user.id) {
-    return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+  const outingId = Number(outingIdRaw);
+  if (!Number.isInteger(outingId)) {
+    return NextResponse.json({ error: "Invalid outingId" }, { status: 400 });
   }
 
   const ext = path.extname(file.name) || ".jpg";
@@ -32,9 +29,10 @@ export async function POST(req: NextRequest) {
 
   await writeFile(uploadPath, bytes);
 
-  const photo = await prisma.photo.create({
-    data: { outingId, filename, caption },
-  });
-
-  return NextResponse.json({ photo });
+  try {
+    const photo = await dal.addPhoto(userId, outingId, { filename, caption });
+    return NextResponse.json({ photo });
+  } catch {
+    return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+  }
 }

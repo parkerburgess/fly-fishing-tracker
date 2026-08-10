@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import dal from "@/lib/dal";
 import { notFound } from "next/navigation";
 import { format } from "date-fns";
 import Link from "next/link";
@@ -10,27 +10,24 @@ export default async function UserProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const user = await prisma.user.findUnique({
-    where: { id },
-    include: {
-      outings: { orderBy: { date: "desc" } },
-    },
-  });
+  const profile = await dal.getUserProfile(id);
 
-  if (!user) notFound();
+  if (!profile) notFound();
 
-  const totalOutings = user.outings.length;
-  const totalCaught = user.outings.reduce((sum, o) => sum + o.caught, 0);
-  const totalScore = user.outings.reduce((sum, o) => sum + o.score, 0);
+  const outings = await dal.getOutingsByUser(id);
+
+  const totalOutings = outings.length;
+  const totalCaught = outings.reduce((sum, o) => sum + o.caught, 0);
+  const totalScore = outings.reduce((sum, o) => sum + o.score, 0);
   const avgScore = totalOutings > 0 ? Math.round(totalScore / totalOutings) : 0;
-  const bestScore = totalOutings > 0 ? Math.max(...user.outings.map((o) => o.score)) : 0;
-  const totalMinutes = user.outings.reduce((sum, o) => sum + (o.timeSpentMin || 0), 0);
+  const bestScore = totalOutings > 0 ? Math.max(...outings.map((o) => o.score)) : 0;
+  const totalMinutes = outings.reduce((sum, o) => sum + (o.timeSpentMin || 0), 0);
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-1">{user.name}</h1>
+      <h1 className="text-2xl font-bold mb-1">{profile.displayName}</h1>
       <p className="text-gray-500 text-sm mb-6">
-        Member since {format(user.createdAt, "MMMM yyyy")}
+        Member since {format(profile.createdAt, "MMMM yyyy")}
       </p>
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
@@ -68,7 +65,7 @@ export default async function UserProfilePage({
             </tr>
           </thead>
           <tbody>
-            {user.outings.map((outing) => (
+            {outings.map((outing) => (
               <tr key={outing.id} className="border-b border-gray-100 hover:bg-gray-50">
                 <td className="py-3 px-4">
                   <Link href={`/outings/${outing.id}`} className="text-blue-600 hover:underline">
@@ -80,7 +77,7 @@ export default async function UserProfilePage({
                 <td className="py-3 px-4 text-green-600">{outing.caught}</td>
               </tr>
             ))}
-            {user.outings.length === 0 && (
+            {outings.length === 0 && (
               <tr>
                 <td colSpan={4} className="py-8 text-center text-gray-500">
                   No outings yet.

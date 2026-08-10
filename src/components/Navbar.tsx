@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useSession, signOut } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
 
-export function Navbar() {
-  const { data: session } = useSession();
+async function signOut() {
+  await fetch("/api/auth/logout", { method: "POST" });
+  window.location.href = "/";
+}
+
+export function Navbar({ userId, userName }: { userId: string; userName: string }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -26,13 +29,13 @@ export function Navbar() {
           </button>
 
           <div className="hidden md:flex items-center gap-6">
-            <NavLinks session={session} />
+            <NavLinks userId={userId} userName={userName} />
           </div>
         </div>
 
         {menuOpen && (
           <div className="md:hidden py-4 border-t border-gray-100 flex flex-col gap-3">
-            <NavLinks session={session} mobile onNavigate={() => setMenuOpen(false)} />
+            <NavLinks userId={userId} userName={userName} mobile onNavigate={() => setMenuOpen(false)} />
           </div>
         )}
       </div>
@@ -40,8 +43,13 @@ export function Navbar() {
   );
 }
 
-function UserMenu({ session, onNavigate }: {
-  session: NonNullable<ReturnType<typeof useSession>["data"]>;
+function UserMenu({
+  userId,
+  userName,
+  onNavigate,
+}: {
+  userId: string;
+  userName: string;
   onNavigate?: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -63,7 +71,7 @@ function UserMenu({ session, onNavigate }: {
         onClick={() => setOpen(!open)}
         className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer flex items-center gap-1"
       >
-        {session.user?.name}
+        {userName}
         <svg className={`w-4 h-4 transition-transform ${open ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
@@ -71,14 +79,14 @@ function UserMenu({ session, onNavigate }: {
       {open && (
         <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50">
           <Link
-            href={`/users/${session.user?.id}`}
+            href={`/users/${userId}`}
             className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
             onClick={() => { setOpen(false); onNavigate?.(); }}
           >
             My Profile
           </Link>
           <button
-            onClick={() => { signOut({ callbackUrl: "/" }); setOpen(false); onNavigate?.(); }}
+            onClick={() => { setOpen(false); onNavigate?.(); signOut(); }}
             className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
           >
             Logout
@@ -90,11 +98,13 @@ function UserMenu({ session, onNavigate }: {
 }
 
 function NavLinks({
-  session,
+  userId,
+  userName,
   mobile,
   onNavigate,
 }: {
-  session: ReturnType<typeof useSession>["data"];
+  userId: string;
+  userName: string;
   mobile?: boolean;
   onNavigate?: () => void;
 }) {
@@ -106,28 +116,22 @@ function NavLinks({
     <>
       <Link href="/" className={linkClass} onClick={onNavigate}>Dashboard</Link>
       <Link href="/outings" className={linkClass} onClick={onNavigate}>Outings</Link>
-      {session && (
-        <Link href="/outings/new" className={linkClass} onClick={onNavigate}>New Outing</Link>
-      )}
+      <Link href="/outings/new" className={linkClass} onClick={onNavigate}>New Outing</Link>
       <Link href="/reports" className={linkClass} onClick={onNavigate}>Reports</Link>
-      {session ? (
-        mobile ? (
-          <>
-            <Link href={`/users/${session.user?.id}`} className={linkClass} onClick={onNavigate}>
-              My Profile
-            </Link>
-            <button
-              onClick={() => { signOut({ callbackUrl: "/" }); onNavigate?.(); }}
-              className={`${linkClass} cursor-pointer text-left`}
-            >
-              Logout
-            </button>
-          </>
-        ) : (
-          <UserMenu session={session} onNavigate={onNavigate} />
-        )
+      {mobile ? (
+        <>
+          <Link href={`/users/${userId}`} className={linkClass} onClick={onNavigate}>
+            My Profile
+          </Link>
+          <button
+            onClick={() => { onNavigate?.(); signOut(); }}
+            className={`${linkClass} cursor-pointer text-left`}
+          >
+            Logout
+          </button>
+        </>
       ) : (
-        <Link href="/login" className={linkClass} onClick={onNavigate}>Login</Link>
+        <UserMenu userId={userId} userName={userName} onNavigate={onNavigate} />
       )}
     </>
   );

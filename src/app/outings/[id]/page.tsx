@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import dal from "@/lib/dal";
+import { getUserId } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import { format } from "date-fns";
 import Link from "next/link";
@@ -15,15 +15,15 @@ export default async function OutingDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const outing = await prisma.outing.findUnique({
-    where: { id },
-    include: { user: true, photos: true },
-  });
+  const outingId = Number(id);
+  if (!Number.isInteger(outingId)) notFound();
+
+  const outing = await dal.getOuting(outingId);
 
   if (!outing) notFound();
 
-  const session = await auth();
-  const isOwner = session?.user?.id === outing.userId;
+  const userId = await getUserId();
+  const isOwner = userId === outing.userId;
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -35,7 +35,7 @@ export default async function OutingDetailPage({
             href={`/users/${outing.userId}`}
             className="text-sm text-blue-600 hover:underline"
           >
-            by {outing.user.name}
+            by {outing.userDisplayName}
           </Link>
         </div>
         {isOwner && (
@@ -43,7 +43,7 @@ export default async function OutingDetailPage({
             <Link href={`/outings/${outing.id}/edit`}>
               <Button variant="secondary">Edit</Button>
             </Link>
-            <DeleteOutingButton outingId={outing.id} />
+            <DeleteOutingButton outingId={String(outing.id)} />
           </div>
         )}
       </div>
@@ -130,7 +130,7 @@ export default async function OutingDetailPage({
 
       {isOwner && (
         <Card>
-          <PhotoUploader outingId={outing.id} />
+          <PhotoUploader outingId={String(outing.id)} />
         </Card>
       )}
     </div>

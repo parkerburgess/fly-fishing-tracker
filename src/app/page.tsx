@@ -1,17 +1,14 @@
-import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import dal from "@/lib/dal";
+import { getUserId } from "@/lib/auth";
 import { format } from "date-fns";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { ScoreTrendChart } from "@/components/charts/ScoreTrendChart";
 
 export default async function DashboardPage() {
-  const session = await auth();
+  const userId = await getUserId();
 
-  const allOutings = await prisma.outing.findMany({
-    include: { user: true },
-    orderBy: { date: "desc" },
-  });
+  const allOutings = await dal.getAllOutings("date", "desc");
 
   const totalOutings = allOutings.length;
   const totalCaught = allOutings.reduce((s, o) => s + o.caught, 0);
@@ -30,19 +27,16 @@ export default async function DashboardPage() {
       score: o.score,
     }));
 
-  let myStats = null;
-  if (session?.user?.id) {
-    const myOutings = allOutings.filter((o) => o.userId === session.user!.id);
-    if (myOutings.length > 0) {
-      myStats = {
+  const myOutings = allOutings.filter((o) => o.userId === userId);
+  const myStats = myOutings.length > 0
+    ? {
         totalOutings: myOutings.length,
         totalCaught: myOutings.reduce((s, o) => s + o.caught, 0),
         avgScore: Math.round(myOutings.reduce((s, o) => s + o.score, 0) / myOutings.length),
         bestScore: Math.max(...myOutings.map((o) => o.score)),
         totalHours: Math.round(myOutings.reduce((s, o) => s + (o.timeSpentMin || 0), 0) / 60),
-      };
-    }
-  }
+      }
+    : null;
 
   return (
     <div>
@@ -119,7 +113,7 @@ export default async function DashboardPage() {
                 <p className="text-xs text-gray-500">
                   {format(outing.date, "MMM d, yyyy")} by{" "}
                   <Link href={`/users/${outing.userId}`} className="hover:underline">
-                    {outing.user.name}
+                    {outing.userDisplayName}
                   </Link>
                 </p>
               </div>

@@ -1,52 +1,31 @@
-import NextAuth from "next-auth";
-import Credentials from "next-auth/providers/credentials";
-import bcrypt from "bcrypt";
-import { prisma } from "./prisma";
+import { decodeJwt } from "jose";
+import { cookies } from "next/headers";
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
-  session: { strategy: "jwt" },
-  pages: {
-    signIn: "/login",
-  },
-  providers: [
-    Credentials({
-      name: "credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
+const DEV_USER_ID = "dev-user-1";
+const DEV_USER_NAME = "Dev User (Parker)";
 
-        const user = await prisma.user.findUnique({
-          where: { email: (credentials.email as string).toLowerCase() },
-        });
+function isAuthDisabled(): boolean {
+  return process.env.DISABLE_AUTH === "true" && process.env.NODE_ENV !== "production";
+}
 
-        if (!user) return null;
+async function getPayload() {
+  const token = (await cookies()).get("auth_token")!.value;
+  return decodeJwt(token);
+}
 
-        const passwordMatch = await bcrypt.compare(
-          credentials.password as string,
-          user.hashedPassword
-        );
+// proxy.ts verifies the token's signature and expiry (jwtVerify) on every
+// request before this ever runs, so a plain decode here is safe.
+export async function getUserId(): Promise<string> {
+  if (isAuthDisabled()) return DEV_USER_ID;
+  return (await getPayload()).sub!;
+}
 
-        if (!passwordMatch) return null;
-
-        return { id: user.id, name: user.name, email: user.email };
-      },
-    }),
-  ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
-      }
-      return session;
-    },
-  },
-});
+export async function getUserName(): Promise<string | null> {
+  if (isAuthDisabled()) return DEV_USER_NAME;
+  try {
+    const payload = await getPayload();
+    return (payload.name as string | undefined) ?? (payload.email as string | undefined) ?? null;
+  } catch {
+    return null;
+  }
+}
