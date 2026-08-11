@@ -11,7 +11,7 @@
   "dependencies": {
     "@parkerburgess/wandering-parker-server": "^0.1.1",
     "@parkerburgess/wandering-parker-theme": "^0.1.0",
-    "@parkerburgess/wandering-parker-ui": "^0.1.0",
+    "@parkerburgess/wandering-parker-ui": "^0.2.0",
     "date-fns": "^4.1.0",
     "jose": "^6.2.3",
     "next": "16.1.6",

@@ -1,12 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useRef, useEffect } from "react";
-
-async function signOut() {
-  await fetch("/api/auth/logout", { method: "POST" });
-  window.location.href = "/";
-}
+import { useState } from "react";
+import { UserMenu, useSignOut } from "@parkerburgess/wandering-parker-ui";
 
 export function Navbar({ userId, userName }: { userId: string; userName: string }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -43,60 +39,6 @@ export function Navbar({ userId, userName }: { userId: string; userName: string 
   );
 }
 
-function UserMenu({
-  userId,
-  userName,
-  onNavigate,
-}: {
-  userId: string;
-  userName: string;
-  onNavigate?: () => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  return (
-    <div className="relative" ref={ref}>
-      <button
-        onClick={() => setOpen(!open)}
-        className="text-gray-600 hover:text-blue-600 transition-colors cursor-pointer flex items-center gap-1"
-      >
-        {userName}
-        <svg className={`w-4 h-4 transition-transform ${open ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-      {open && (
-        <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50">
-          <Link
-            href={`/users/${userId}`}
-            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-            onClick={() => { setOpen(false); onNavigate?.(); }}
-          >
-            My Profile
-          </Link>
-          <button
-            onClick={() => { setOpen(false); onNavigate?.(); signOut(); }}
-            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-          >
-            Logout
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-
 function NavLinks({
   userId,
   userName,
@@ -108,6 +50,7 @@ function NavLinks({
   mobile?: boolean;
   onNavigate?: () => void;
 }) {
+  const signOut = useSignOut();
   const linkClass = mobile
     ? "block py-2 text-gray-600 hover:text-blue-600"
     : "text-gray-600 hover:text-blue-600 transition-colors";
@@ -131,7 +74,10 @@ function NavLinks({
           </button>
         </>
       ) : (
-        <UserMenu userId={userId} userName={userName} onNavigate={onNavigate} />
+        <UserMenu
+          userName={userName}
+          extraItems={[{ label: "My Profile", href: `/users/${userId}` }]}
+        />
       )}
     </>
   );
