@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { deleteOuting } from "@/actions/outings";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@parkerburgess/wandering-parker-ui";
 
 export function DeleteOutingButton({ outingId }: { outingId: string }) {
   const [confirming, setConfirming] = useState(false);

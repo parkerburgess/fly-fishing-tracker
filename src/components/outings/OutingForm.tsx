@@ -1,11 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card } from "@/components/ui/Card";
-import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
-import { Textarea } from "@/components/ui/Textarea";
-import { Button } from "@/components/ui/Button";
+import { Card, Input, Select, Textarea, Button } from "@parkerburgess/wandering-parker-ui";
 import { WEATHER_OPTIONS, WATER_CONDITIONS } from "@/lib/constants";
 import { calculateScore } from "@/lib/scoring";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@parkerburgess/wandering-parker-ui";
 import { useRouter } from "next/navigation";
 
 interface Photo {

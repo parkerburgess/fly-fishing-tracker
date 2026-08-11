@@ -2,7 +2,7 @@ import dal from "@/lib/dal";
 import { getUserId } from "@parkerburgess/wandering-parker-server";
 import { format } from "date-fns";
 import Link from "next/link";
-import { Card } from "@/components/ui/Card";
+import { Card } from "@parkerburgess/wandering-parker-ui";
 import { ScoreTrendChart } from "@/components/charts/ScoreTrendChart";
 
 export default async function DashboardPage() {

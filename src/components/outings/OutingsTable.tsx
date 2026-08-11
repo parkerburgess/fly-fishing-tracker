@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { Button, Card } from "@parkerburgess/wandering-parker-ui";
 import { SortableHeader } from "./SortableHeader";
 
 interface OutingRow {

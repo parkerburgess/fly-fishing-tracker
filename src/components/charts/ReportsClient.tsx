@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
+import { Card, Button } from "@parkerburgess/wandering-parker-ui";
 import { ScoreTrendChart } from "./ScoreTrendChart";
 import { CatchBreakdownChart } from "./CatchBreakdownChart";
 

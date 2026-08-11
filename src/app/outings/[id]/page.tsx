@@ -3,9 +3,7 @@ import { getUserId } from "@parkerburgess/wandering-parker-server";
 import { notFound } from "next/navigation";
 import { format } from "date-fns";
 import Link from "next/link";
-import { Card } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
+import { Card, Badge, Button } from "@parkerburgess/wandering-parker-ui";
 import { DeleteOutingButton } from "@/components/outings/DeleteOutingButton";
 import { PhotoUploader } from "@/components/outings/PhotoUploader";
 
@@ -81,7 +79,7 @@ export default async function OutingDetailPage({
           {outing.waterConditions && (
             <div>
               <p className="text-xs text-gray-500">Water</p>
-              <Badge color="green">{outing.waterConditions}</Badge>
+              <Badge color="correct">{outing.waterConditions}</Badge>
             </div>
           )}
           {outing.waterTemp !== null && (

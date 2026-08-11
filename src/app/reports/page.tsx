@@ -1,7 +1,7 @@
 import dal from "@/lib/dal";
 import { getUserId } from "@parkerburgess/wandering-parker-server";
 import { format } from "date-fns";
-import { Card } from "@/components/ui/Card";
+import { Card } from "@parkerburgess/wandering-parker-ui";
 import { ReportsClient } from "@/components/charts/ReportsClient";
 import type { OutingWithUserName } from "@/types";
 

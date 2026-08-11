@@ -2,7 +2,7 @@ import dal from "@/lib/dal";
 import { notFound } from "next/navigation";
 import { format } from "date-fns";
 import Link from "next/link";
-import { Card } from "@/components/ui/Card";
+import { Card } from "@parkerburgess/wandering-parker-ui";
 
 export default async function UserProfilePage({
   params,

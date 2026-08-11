@@ -1,7 +1,6 @@
 "use client";
 
-import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
+import { Card, Button } from "@parkerburgess/wandering-parker-ui";
 
 export default function Error({
   error,
