@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  transpilePackages: ["@parkerburgess/wandering-parker-server", "@parkerburgess/wandering-parker-ui"],
 };
 
 export default nextConfig;

@@ -1,4 +1,4 @@
-import { getPool } from "@/lib/db";
+import { getPool } from "@parkerburgess/wandering-parker-server";
 import type {
   Outing,
   OutingDetail,

@@ -1,5 +1,5 @@
 import dal from "@/lib/dal";
-import { getUserId } from "@/lib/auth";
+import { getUserId } from "@parkerburgess/wandering-parker-server";
 import { notFound, redirect } from "next/navigation";
 import { format } from "date-fns";
 import { OutingForm } from "@/components/outings/OutingForm";

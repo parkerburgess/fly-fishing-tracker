@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
-import { getUserId, getUserName } from "@/lib/auth";
+import { getUserId, getUserName } from "@parkerburgess/wandering-parker-server";
 import dal from "@/lib/dal";
 
 const geistSans = Geist({

@@ -1,7 +1,7 @@
 "use server";
 
 import dal from "@/lib/dal";
-import { getUserId } from "@/lib/auth";
+import { getUserId } from "@parkerburgess/wandering-parker-server";
 import { outingSchema } from "@/lib/validators";
 import { calculateScore } from "@/lib/scoring";
 import { revalidatePath } from "next/cache";

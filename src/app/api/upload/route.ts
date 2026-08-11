@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserId } from "@/lib/auth";
+import { getUserId } from "@parkerburgess/wandering-parker-server";
 import dal from "@/lib/dal";
 import { writeFile } from "fs/promises";
 import path from "path";
