@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "concurrently \"next dev -p 3006\" \"wait-on http://localhost:3006 && start chrome --incognito http://localhost:3006\"",
+    "dev:server-only": "next dev -p 3006",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -14,7 +15,7 @@
     "@parkerburgess/wandering-parker-ui": "^0.5.0",
     "date-fns": "^4.1.0",
     "jose": "^6.2.3",
-    "next": "16.1.6",
+    "next": "16.3.5",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "recharts": "^3.7.0",
@@ -25,10 +26,12 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^10.0.5",
     "eslint": "^9",
-    "eslint-config-next": "16.1.6",
+    "eslint-config-next": "16.3.5",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.2.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wait-on": "^9.1.0"
   }
 }
