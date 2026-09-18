@@ -79,7 +79,7 @@ export default async function OutingDetailPage({
           {outing.waterConditions && (
             <div>
               <p className="text-xs text-gray-500">Water</p>
-              <Badge color="correct">{outing.waterConditions}</Badge>
+              <Badge color="success">{outing.waterConditions}</Badge>
             </div>
           )}
           {outing.waterTemp !== null && (
