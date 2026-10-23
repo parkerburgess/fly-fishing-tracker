@@ -4,12 +4,6 @@ import { useState } from "react";
 import { Button } from "@parkerburgess/wandering-parker-ui";
 import { useRouter } from "next/navigation";
 
-interface Photo {
-  id: string;
-  filename: string;
-  caption: string | null;
-}
-
 export function PhotoUploader({ outingId }: { outingId: string }) {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
@@ -60,6 +54,8 @@ export function PhotoUploader({ outingId }: { outingId: string }) {
       />
       {preview && (
         <div className="space-y-2">
+          {/* Local blob: URL from the file picker; next/image has nothing to optimize here. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={preview} alt="Preview" className="rounded-lg max-h-48 object-cover" />
           <input
             type="text"

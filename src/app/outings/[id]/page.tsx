@@ -112,6 +112,8 @@ export default async function OutingDetailPage({
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {outing.photos.map((photo) => (
               <div key={photo.id}>
+                {/* Uploads are written to public/ at runtime, after the build, so the image optimizer cannot serve them. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={`/uploads/${photo.filename}`}
                   alt={photo.caption || "Outing photo"}
