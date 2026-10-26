@@ -4,6 +4,7 @@ import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { getUserId, getUserName } from "@parkerburgess/wandering-parker-server";
 import dal from "@/lib/dal";
+import { ThemeProvider } from "@parkerburgess/wandering-parker-ui";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,14 +31,16 @@ export default async function RootLayout({
   await dal.upsertUserProfile(userId, userName ?? userId);
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen`}
       >
-        <Navbar userId={userId} userName={userName ?? userId} />
-        <main className="max-w-6xl mx-auto px-4 py-8">
-          {children}
-        </main>
+        <ThemeProvider>
+          <Navbar userId={userId} userName={userName ?? userId} />
+          <main className="max-w-6xl mx-auto px-4 py-8">
+            {children}
+          </main>
+        </ThemeProvider>
       </body>
     </html>
   );

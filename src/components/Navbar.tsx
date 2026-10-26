@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { UserMenu, useSignOut } from "@parkerburgess/wandering-parker-ui";
+import { UserMenu, useSignOut, useTheme } from "@parkerburgess/wandering-parker-ui";
 
 export function Navbar({ userId, userName }: { userId: string; userName: string }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -51,6 +51,12 @@ function NavLinks({
   onNavigate?: () => void;
 }) {
   const signOut = useSignOut();
+  const { resolvedTheme, setTheme, palette, setPalette } = useTheme();
+
+  function handleToggleTheme() {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+  }
+
   const linkClass = mobile
     ? "block py-2 text-gray-600 hover:text-blue-600"
     : "text-gray-600 hover:text-blue-600 transition-colors";
@@ -77,6 +83,10 @@ function NavLinks({
         <UserMenu
           userName={userName}
           extraItems={[{ label: "My Profile", href: `/users/${userId}` }]}
+          theme={resolvedTheme}
+          onToggleTheme={handleToggleTheme}
+          palette={palette}
+          onSelectPalette={setPalette}
         />
       )}
     </>
