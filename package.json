@@ -10,7 +10,7 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@parkerburgess/wandering-parker-server": "^0.1.1",
+    "@parkerburgess/wandering-parker-server": "^0.2.2",
     "@parkerburgess/wandering-parker-ui": "^1.2.0",
     "date-fns": "^4.1.0",
     "jose": "^6.2.3",
