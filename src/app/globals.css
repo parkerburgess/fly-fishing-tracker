@@ -1,2 +1,10 @@
 @import "tailwindcss";
 @import "@parkerburgess/wandering-parker-ui/theme.css";
+
+/* Always reserve space for the vertical scrollbar. Without this the centered
+   max-w-6xl main shifts horizontally when a page is short enough to lose its
+   scrollbar, so the header control appears to jump between pages (e.g. reports
+   vs. the dashboard) and hops when content grows past one screen. */
+html {
+  scrollbar-gutter: stable;
+}

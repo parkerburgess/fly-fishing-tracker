@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Card, Button } from "@parkerburgess/wandering-parker-ui";
+import { Card } from "@parkerburgess/wandering-parker-ui";
+import { ScopeToggle } from "../ScopeToggle";
 import { ScoreTrendChart } from "./ScoreTrendChart";
 import { CatchBreakdownChart } from "./CatchBreakdownChart";
 
@@ -91,24 +92,18 @@ export function ReportsClient({
     .map(([, data]) => data);
 
   return (
-    <div className="space-y-8">
-      {isLoggedIn && (
-        <div className="flex gap-2">
-          <Button
-            variant={showMine ? "secondary" : "primary"}
-            onClick={() => setShowMine(false)}
-          >
-            All Users
-          </Button>
-          <Button
-            variant={showMine ? "primary" : "secondary"}
-            onClick={() => setShowMine(true)}
-          >
-            My Outings
-          </Button>
-        </div>
-      )}
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Reports</h1>
+        <ScopeToggle
+          count={outings.length}
+          showMine={showMine}
+          onShowMineChange={setShowMine}
+          disabled={!isLoggedIn}
+        />
+      </div>
 
+      <div className="space-y-8">
       {outings.length === 0 ? (
         <Card>
           <p className="text-center text-gray-500 py-8">No data to display.</p>
@@ -198,6 +193,7 @@ export function ReportsClient({
           </Card>
         </>
       )}
+      </div>
     </div>
   );
 }

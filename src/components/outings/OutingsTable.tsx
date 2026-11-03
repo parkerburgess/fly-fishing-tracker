@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Button, Card } from "@parkerburgess/wandering-parker-ui";
+import { Card } from "@parkerburgess/wandering-parker-ui";
+import { ScopeToggle } from "../ScopeToggle";
 import { SortableHeader } from "./SortableHeader";
 
 interface OutingRow {
@@ -40,27 +41,12 @@ export function OutingsTable({
         <h1 className="text-2xl font-bold">
           {showMine && currentUserId ? "My Outings" : "All Outings"}
         </h1>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-500">{filtered.length} outings</span>
-          <div className="flex gap-1">
-            <Button
-              variant={showMine && currentUserId ? "secondary" : "primary"}
-              onClick={() => setShowMine(false)}
-              disabled={!currentUserId}
-              className="text-sm px-3 py-1"
-            >
-              All
-            </Button>
-            <Button
-              variant={showMine && currentUserId ? "primary" : "secondary"}
-              onClick={() => setShowMine(true)}
-              disabled={!currentUserId}
-              className="text-sm px-3 py-1"
-            >
-              Mine
-            </Button>
-          </div>
-        </div>
+        <ScopeToggle
+          count={filtered.length}
+          showMine={showMine && !!currentUserId}
+          onShowMineChange={setShowMine}
+          disabled={!currentUserId}
+        />
       </div>
 
       <Card className="overflow-x-auto">

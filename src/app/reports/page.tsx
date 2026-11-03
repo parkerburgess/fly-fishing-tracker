@@ -27,13 +27,10 @@ export default async function ReportsPage() {
     }));
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Reports</h1>
-      <ReportsClient
-        allOutings={serializeOutings(allOutings)}
-        myOutings={serializeOutings(myOutings)}
-        isLoggedIn={true}
-      />
-    </div>
+    <ReportsClient
+      allOutings={serializeOutings(allOutings)}
+      myOutings={serializeOutings(myOutings)}
+      isLoggedIn={true}
+    />
   );
 }
