@@ -37,9 +37,6 @@ export interface UserProfile {
   createdAt: Date;
 }
 
-export type OutingSortField = "date" | "location" | "score" | "author";
-export type SortDir = "asc" | "desc";
-
 export type OutingInput = {
   date: string;
   location: string;

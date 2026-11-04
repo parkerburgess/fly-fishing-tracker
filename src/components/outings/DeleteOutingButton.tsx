@@ -1,24 +1,38 @@
 "use client";
 
 import { useState } from "react";
-import { deleteOuting } from "@/actions/outings";
 import { Button } from "@parkerburgess/wandering-parker-ui";
 
-export function DeleteOutingButton({ outingId }: { outingId: string }) {
+export function DeleteOutingButton({
+  onDelete,
+}: {
+  onDelete: () => Promise<{ error?: string } | void>;
+}) {
   const [confirming, setConfirming] = useState(false);
+
+  async function handleConfirm() {
+    await onDelete();
+  }
+
+  function startConfirming() {
+    setConfirming(true);
+  }
+
+  function cancelConfirming() {
+    setConfirming(false);
+  }
+
+  // #region Tailwind utility consts
+  const confirmGroupCls = "flex gap-2";
+  // #endregion
 
   if (confirming) {
     return (
-      <div className="flex gap-2">
-        <Button
-          variant="danger"
-          onClick={async () => {
-            await deleteOuting(outingId);
-          }}
-        >
+      <div className={confirmGroupCls}>
+        <Button variant="danger" onClick={handleConfirm}>
           Confirm
         </Button>
-        <Button variant="ghost" onClick={() => setConfirming(false)}>
+        <Button variant="ghost" onClick={cancelConfirming}>
           Cancel
         </Button>
       </div>
@@ -26,7 +40,7 @@ export function DeleteOutingButton({ outingId }: { outingId: string }) {
   }
 
   return (
-    <Button variant="danger" onClick={() => setConfirming(true)}>
+    <Button variant="danger" onClick={startConfirming}>
       Delete
     </Button>
   );

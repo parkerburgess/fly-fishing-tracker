@@ -4,19 +4,7 @@ import { useState } from "react";
 import { Card, Input, Select, Textarea, Button } from "@parkerburgess/wandering-parker-ui";
 import { WEATHER_OPTIONS, WATER_CONDITIONS } from "@/lib/constants";
 import { calculateScore } from "@/lib/scoring";
-
-interface OutingData {
-  date?: string;
-  location?: string;
-  caught?: number;
-  lost?: number;
-  missed?: number;
-  weather?: string;
-  waterConditions?: string;
-  waterTemp?: number | null;
-  timeSpentMin?: number | null;
-  notes?: string;
-}
+import type { OutingFormDto } from "@/dto";
 
 export function OutingForm({
   action,
@@ -24,7 +12,7 @@ export function OutingForm({
   submitLabel = "Save Outing",
 }: {
   action: (formData: FormData) => Promise<{ error?: string } | void>;
-  initialData?: OutingData;
+  initialData?: OutingFormDto;
   submitLabel?: string;
 }) {
   const [caught, setCaught] = useState(initialData?.caught ?? 0);

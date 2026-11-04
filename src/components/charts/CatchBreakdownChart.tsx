@@ -10,12 +10,9 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import type { CatchBreakdownPointDto } from "@/dto";
 
-export function CatchBreakdownChart({
-  data,
-}: {
-  data: { name: string; caught: number; lost: number; missed: number }[];
-}) {
+export function CatchBreakdownChart({ data }: { data: CatchBreakdownPointDto[] }) {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={data}>

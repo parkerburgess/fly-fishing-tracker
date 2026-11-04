@@ -5,44 +5,35 @@ import { Card } from "@parkerburgess/wandering-parker-ui";
 import { ScopeToggle } from "../ScopeToggle";
 import { ScoreTrendChart } from "./ScoreTrendChart";
 import { CatchBreakdownChart } from "./CatchBreakdownChart";
-
-interface OutingData {
-  id: string;
-  date: string;
-  dateLabel: string;
-  month: string;
-  monthLabel: string;
-  location: string;
-  caught: number;
-  lost: number;
-  missed: number;
-  score: number;
-  userName: string;
-}
+import type {
+  CatchBreakdownPointDto,
+  ReportOutingDto,
+  ScoreTrendPointDto,
+} from "@/dto";
 
 export function ReportsClient({
-  allOutings,
-  myOutings,
-  isLoggedIn,
+  outings: allOutings,
+  currentUserId,
 }: {
-  allOutings: OutingData[];
-  myOutings: OutingData[];
-  isLoggedIn: boolean;
+  outings: ReportOutingDto[];
+  currentUserId: string | null;
 }) {
   const [showMine, setShowMine] = useState(false);
-  const outings = showMine ? myOutings : allOutings;
+  const isLoggedIn = !!currentUserId;
+  const outings = showMine && currentUserId
+    ? allOutings.filter((o) => o.userId === currentUserId)
+    : allOutings;
 
-  // Score trend data
-  const scoreTrend = outings.map((o) => ({
-    date: o.dateLabel,
-    score: o.score,
-  }));
+  // Score trend data, oldest first
+  const scoreTrend: ScoreTrendPointDto[] = [...outings]
+    .sort((a, b) => a.dateKey.localeCompare(b.dateKey))
+    .map((o) => ({ date: o.dateLabel, score: o.score }));
 
   // Catch breakdown - totals
   const totalCaught = outings.reduce((s, o) => s + o.caught, 0);
   const totalLost = outings.reduce((s, o) => s + o.lost, 0);
   const totalMissed = outings.reduce((s, o) => s + o.missed, 0);
-  const catchBreakdown = [
+  const catchBreakdown: CatchBreakdownPointDto[] = [
     { name: "Total", caught: totalCaught, lost: totalLost, missed: totalMissed },
   ];
 
@@ -72,7 +63,7 @@ export function ReportsClient({
     totalScore: number;
   }>();
   for (const o of outings) {
-    const existing = monthMap.get(o.month) || {
+    const existing = monthMap.get(o.monthKey) || {
       label: o.monthLabel,
       outings: 0,
       caught: 0,
@@ -85,7 +76,7 @@ export function ReportsClient({
     existing.lost += o.lost;
     existing.missed += o.missed;
     existing.totalScore += o.score;
-    monthMap.set(o.month, existing);
+    monthMap.set(o.monthKey, existing);
   }
   const monthlyData = Array.from(monthMap.entries())
     .sort(([a], [b]) => a.localeCompare(b))

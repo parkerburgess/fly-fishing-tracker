@@ -2,18 +2,15 @@ import type {
   Outing,
   OutingDetail,
   OutingInput,
-  OutingSortField,
   OutingWithUserName,
   Photo,
-  SortDir,
   UserProfile,
 } from "@/types";
 
+// The DAL only reads/writes the data source and casts rows to domain types.
+// Ordering, filtering, and other manipulation belong to the consumer.
 export interface IDataAccess {
-  getAllOutings(
-    sortField?: OutingSortField,
-    sortDir?: SortDir
-  ): Promise<OutingWithUserName[]>;
+  getAllOutings(): Promise<OutingWithUserName[]>;
   getOutingsByUser(userId: string): Promise<Outing[]>;
   getOuting(id: number): Promise<OutingDetail | null>;
   createOuting(userId: string, data: OutingInput): Promise<Outing>;

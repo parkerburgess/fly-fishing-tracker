@@ -1,36 +1,16 @@
 import dal from "@/lib/dal";
 import { getUserId } from "@parkerburgess/wandering-parker-server";
-import { format } from "date-fns";
 import { ReportsClient } from "@/components/charts/ReportsClient";
-import type { OutingWithUserName } from "@/types";
+import { toReportOutingDto } from "@/lib/hydrate/reports";
 
 export default async function ReportsPage() {
   const userId = await getUserId();
-
-  const allOutings = await dal.getAllOutings("date", "asc");
-
-  const myOutings = allOutings.filter((o) => o.userId === userId);
-
-  const serializeOutings = (outings: OutingWithUserName[]) =>
-    outings.map((o) => ({
-      id: String(o.id),
-      date: format(o.date, "yyyy-MM-dd"),
-      dateLabel: format(o.date, "MMM d"),
-      month: format(o.date, "yyyy-MM"),
-      monthLabel: format(o.date, "MMM yyyy"),
-      location: o.location,
-      caught: o.caught,
-      lost: o.lost,
-      missed: o.missed,
-      score: o.score,
-      userName: o.userDisplayName,
-    }));
+  const outings = await dal.getAllOutings();
 
   return (
     <ReportsClient
-      allOutings={serializeOutings(allOutings)}
-      myOutings={serializeOutings(myOutings)}
-      isLoggedIn={true}
+      outings={outings.map(toReportOutingDto)}
+      currentUserId={userId}
     />
   );
 }

@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Card, Badge, Button } from "@parkerburgess/wandering-parker-ui";
 import { DeleteOutingButton } from "@/components/outings/DeleteOutingButton";
 import { PhotoUploader } from "@/components/outings/PhotoUploader";
+import { BackButton } from "@/components/outings/BackButton";
+import { deleteOuting } from "@/actions/outings";
 
 export default async function OutingDetailPage({
   params,
@@ -23,8 +25,14 @@ export default async function OutingDetailPage({
   const userId = await getUserId();
   const isOwner = userId === outing.userId;
 
+  async function handleDelete() {
+    "use server";
+    return deleteOuting(id);
+  }
+
   return (
     <div className="max-w-2xl mx-auto">
+      <BackButton />
       <div className="flex justify-between items-start mb-6">
         <div>
           <h1 className="text-2xl font-bold">{outing.location}</h1>
@@ -41,7 +49,7 @@ export default async function OutingDetailPage({
             <Link href={`/outings/${outing.id}/edit`}>
               <Button variant="secondary">Edit</Button>
             </Link>
-            <DeleteOutingButton outingId={String(outing.id)} />
+            <DeleteOutingButton onDelete={handleDelete} />
           </div>
         )}
       </div>

@@ -4,32 +4,21 @@ import { useState } from "react";
 import Link from "next/link";
 import { Card } from "@parkerburgess/wandering-parker-ui";
 import { ScopeToggle } from "./ScopeToggle";
+import type { DashboardOutingDto, ScoreTrendPointDto } from "@/dto";
 import { ScoreTrendChart } from "./charts/ScoreTrendChart";
 
-interface OutingData {
-  id: string;
-  dateKey: string;    // yyyy-MM-dd, used for sorting
-  chartLabel: string; // "MMM d"
-  longDate: string;   // "MMM d, yyyy"
-  location: string;
-  score: number;
-  caught: number;
-  timeSpentMin: number | null;
-  userId: string;
-  userName: string;
-}
-
 export function DashboardClient({
-  allOutings,
-  myOutings,
-  isLoggedIn,
+  outings: allOutings,
+  currentUserId,
 }: {
-  allOutings: OutingData[];
-  myOutings: OutingData[];
-  isLoggedIn: boolean;
+  outings: DashboardOutingDto[];
+  currentUserId: string | null;
 }) {
   const [showMine, setShowMine] = useState(false);
-  const outings = showMine ? myOutings : allOutings;
+  const isLoggedIn = !!currentUserId;
+  const outings = showMine && currentUserId
+    ? allOutings.filter((o) => o.userId === currentUserId)
+    : allOutings;
 
   const totalOutings = outings.length;
   const totalCaught = outings.reduce((s, o) => s + o.caught, 0);
@@ -39,7 +28,7 @@ export function DashboardClient({
   const totalMinutes = outings.reduce((s, o) => s + (o.timeSpentMin || 0), 0);
   const totalHours = Math.round(totalMinutes / 60);
 
-  const chartData = [...outings]
+  const chartData: ScoreTrendPointDto[] = [...outings]
     .sort((a, b) => a.dateKey.localeCompare(b.dateKey))
     .map((o) => ({ date: o.chartLabel, score: o.score }));
 

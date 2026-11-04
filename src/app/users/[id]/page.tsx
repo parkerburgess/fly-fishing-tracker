@@ -14,7 +14,11 @@ export default async function UserProfilePage({
 
   if (!profile) notFound();
 
-  const outings = await dal.getOutingsByUser(id);
+  // The DAL returns unordered rows; this page shows newest first.
+  const unorderedOutings = await dal.getOutingsByUser(id);
+  const outings = [...unorderedOutings].sort(
+    (left, right) => right.date.getTime() - left.date.getTime()
+  );
 
   const totalOutings = outings.length;
   const totalCaught = outings.reduce((sum, o) => sum + o.caught, 0);

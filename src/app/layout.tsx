@@ -43,7 +43,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen`}
       >
         <ThemeProvider>
-          <Header userName={userName ?? userId} brandText="FlyFish Tracker" navItems={navItems} />
+          <Header userName={userName ?? userId} brandText="Fly Fish Tracker" navItems={navItems} />
           <main className="max-w-6xl mx-auto px-4 py-8">
             {children}
           </main>

@@ -9,12 +9,9 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import type { ScoreTrendPointDto } from "@/dto";
 
-export function ScoreTrendChart({
-  data,
-}: {
-  data: { date: string; score: number }[];
-}) {
+export function ScoreTrendChart({ data }: { data: ScoreTrendPointDto[] }) {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={data}>

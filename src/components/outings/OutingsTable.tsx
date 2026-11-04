@@ -1,44 +1,81 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card } from "@parkerburgess/wandering-parker-ui";
+import type { OutingsTableRowDto, SortDirection } from "@/dto";
 import { ScopeToggle } from "../ScopeToggle";
 import { SortableHeader } from "./SortableHeader";
+import { compareBy, parseSortDirection } from "../sorting";
 
-interface OutingRow {
-  id: string;
-  date: string;
-  location: string;
-  score: number;
-  caught: number;
-  lost: number;
-  missed: number;
-  userId: string;
-  userName: string;
+type RowKey = keyof OutingsTableRowDto;
+
+interface ColumnDefinition {
+  label: string;
+  sortKey: RowKey;
+  render: (row: OutingsTableRowDto) => React.ReactNode;
+}
+
+// Which DTO properties this table shows and sorts on. Any DTO key can be
+// used as a sortKey. Date displays the formatted string but sorts on dateKey.
+const COLUMNS: ColumnDefinition[] = [
+  { label: "Date", sortKey: "dateKey", render: (row) => row.date },
+  { label: "Location", sortKey: "location", render: (row) => row.location },
+  { label: "Score", sortKey: "score", render: (row) => row.score },
+  { label: "Caught", sortKey: "caught", render: (row) => row.caught },
+  { label: "Lost", sortKey: "lost", render: (row) => row.lost },
+  { label: "Missed", sortKey: "missed", render: (row) => row.missed },
+  { label: "Fisherman", sortKey: "userName", render: (row) => row.userName },
+];
+
+const DEFAULT_SORT_KEY: RowKey = "dateKey";
+const DEFAULT_SORT_DIRECTION: SortDirection = "desc";
+
+function parseSortKey(value: string | null): RowKey {
+  const match = COLUMNS.find((column) => column.sortKey === value);
+  return match ? match.sortKey : DEFAULT_SORT_KEY;
 }
 
 export function OutingsTable({
-  outings,
+  rows,
   currentUserId,
-  sortField,
-  sortDir,
 }: {
-  outings: OutingRow[];
+  rows: OutingsTableRowDto[];
   currentUserId: string | null;
-  sortField: string;
-  sortDir: string;
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [showMine, setShowMine] = useState(!!currentUserId);
 
+  const sortKey = parseSortKey(searchParams.get("sort"));
+  const sortDirection = parseSortDirection(
+    searchParams.get("dir"),
+    DEFAULT_SORT_DIRECTION
+  );
+
   const filtered = showMine && currentUserId
-    ? outings.filter((o) => o.userId === currentUserId)
-    : outings;
+    ? rows.filter((row) => row.userId === currentUserId)
+    : rows;
+  const sorted = [...filtered].sort(compareBy(sortKey, sortDirection));
+
+  function goToOuting(outingId: string) {
+    router.push(`/outings/${outingId}`);
+  }
+
+  // #region Tailwind utility consts
+  const headingCls = "text-2xl font-bold";
+  const headerRowCls = "border-b border-gray-200";
+  const rowCls =
+    "border-1 border-transparent border-b-gray-100 " +
+    "hover:bg-gray-400";
+  const cellCls = "py-3 px-4";
+  const emptyRowCls = "py-8 text-center text-gray-500";
+  // #endregion
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">
+        <h1 className={headingCls}>
           {showMine && currentUserId ? "My Outings" : "All Outings"}
         </h1>
         <ScopeToggle
@@ -52,39 +89,36 @@ export function OutingsTable({
       <Card className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-200">
-              <SortableHeader field="date" current={sortField} dir={sortDir}>Date</SortableHeader>
-              <SortableHeader field="location" current={sortField} dir={sortDir}>Location</SortableHeader>
-              <SortableHeader field="score" current={sortField} dir={sortDir}>Score</SortableHeader>
-              <th className="text-left py-3 px-4 font-medium text-gray-500">Caught</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-500">Lost</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-500">Missed</th>
-              <SortableHeader field="author" current={sortField} dir={sortDir}>Author</SortableHeader>
+            <tr className={headerRowCls}>
+              {COLUMNS.map((column) => (
+                <SortableHeader
+                  key={column.sortKey}
+                  field={column.sortKey}
+                  current={sortKey}
+                  dir={sortDirection}
+                >
+                  {column.label}
+                </SortableHeader>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {filtered.map((outing) => (
-              <tr key={outing.id} className="border-b border-gray-100 hover:bg-gray-50">
-                <td className="py-3 px-4">
-                  <Link href={`/outings/${outing.id}`} className="text-blue-600 hover:underline">
-                    {outing.date}
-                  </Link>
-                </td>
-                <td className="py-3 px-4">{outing.location}</td>
-                <td className="py-3 px-4 font-semibold">{outing.score}</td>
-                <td className="py-3 px-4 text-green-600">{outing.caught}</td>
-                <td className="py-3 px-4 text-yellow-600">{outing.lost}</td>
-                <td className="py-3 px-4 text-red-600">{outing.missed}</td>
-                <td className="py-3 px-4">
-                  <Link href={`/users/${outing.userId}`} className="hover:underline">
-                    {outing.userName}
-                  </Link>
-                </td>
+            {sorted.map((row) => (
+              <tr
+                key={row.id}
+                className={rowCls}
+                onClick={() => goToOuting(row.id)}
+              >
+                {COLUMNS.map((column) => (
+                  <td key={column.sortKey} className={cellCls}>
+                    {column.render(row)}
+                  </td>
+                ))}
               </tr>
             ))}
-            {filtered.length === 0 && (
+            {sorted.length === 0 && (
               <tr>
-                <td colSpan={7} className="py-8 text-center text-gray-500">
+                <td colSpan={COLUMNS.length} className={emptyRowCls}>
                   No outings yet. Be the first to log one!
                 </td>
               </tr>

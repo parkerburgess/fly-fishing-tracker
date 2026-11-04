@@ -3,10 +3,8 @@ import type {
   Outing,
   OutingDetail,
   OutingInput,
-  OutingSortField,
   OutingWithUserName,
   Photo,
-  SortDir,
   UserProfile,
 } from "@/types";
 import type { IDataAccess } from "./IDataAccess";
@@ -44,13 +42,6 @@ const OUTING_OUTPUT_COLUMNS = `
   INSERTED.Weather, INSERTED.WaterConditions, INSERTED.WaterTemp,
   INSERTED.TimeSpentMin, INSERTED.Notes, INSERTED.CreatedAt, INSERTED.UpdatedAt
 `;
-
-const SORT_COLUMNS: Record<OutingSortField, string> = {
-  date: "o.[Date]",
-  location: "o.Location",
-  score: "o.Score",
-  author: "up.DisplayName",
-};
 
 // Outing.Date is a pure calendar date (SQL DATE, no time-of-day) and comes
 // back from mssql as a Date at UTC midnight. date-fns' format() reads the
@@ -95,18 +86,12 @@ function toUserProfile(row: UserProfileRow): UserProfile {
 
 export class SqlDataAccess implements IDataAccess {
   // ── Outings ─────────────────────────────────────────────────────────────
-  async getAllOutings(
-    sortField: OutingSortField = "date",
-    sortDir: SortDir = "desc"
-  ): Promise<OutingWithUserName[]> {
+  async getAllOutings(): Promise<OutingWithUserName[]> {
     const pool = await getPool();
-    const column = SORT_COLUMNS[sortField] ?? SORT_COLUMNS.date;
-    const direction = sortDir === "asc" ? "ASC" : "DESC";
     const result = await pool.request().query<OutingWithDisplayNameRow>(`
       SELECT ${OUTING_COLUMNS}, up.DisplayName
       FROM flyfishing.Outing o
       LEFT JOIN flyfishing.UserProfile up ON up.UserId = o.UserId
-      ORDER BY ${column} ${direction}
     `);
     return result.recordset.map(toOutingWithUserName);
   }
@@ -120,7 +105,6 @@ export class SqlDataAccess implements IDataAccess {
         SELECT ${OUTING_COLUMNS}
         FROM flyfishing.Outing o
         WHERE o.UserId = @userId
-        ORDER BY o.[Date] DESC
       `);
     return result.recordset.map(toOuting);
   }
