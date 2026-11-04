@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/Navbar";
 import { getUserId, getUserName } from "@parkerburgess/wandering-parker-server";
 import dal from "@/lib/dal";
-import { ThemeProvider } from "@parkerburgess/wandering-parker-ui";
+import { Header, ThemeProvider } from "@parkerburgess/wandering-parker-ui";
+import type { SiteNavItem } from "@parkerburgess/wandering-parker-ui";
+
+const navItems: SiteNavItem[] = [
+  { label: "Dashboard", href: "/" },
+  { label: "Outings", href: "/outings" },
+  { label: "New Outing", href: "/outings/new" },
+  { label: "Reports", href: "/reports" },
+];
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,7 +43,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen`}
       >
         <ThemeProvider>
-          <Navbar userId={userId} userName={userName ?? userId} />
+          <Header userName={userName ?? userId} brandText="FlyFish Tracker" navItems={navItems} />
           <main className="max-w-6xl mx-auto px-4 py-8">
             {children}
           </main>
