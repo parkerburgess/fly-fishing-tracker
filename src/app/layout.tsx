@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { getUserId, getUserName } from "@parkerburgess/wandering-parker-server";
+import {
+  getUserId,
+  getUserName,
+  getUserEmail,
+} from "@parkerburgess/wandering-parker-server";
 import dal from "@/lib/dal";
 import { Header, ThemeProvider } from "@parkerburgess/wandering-parker-ui";
-import type { SiteNavItem } from "@parkerburgess/wandering-parker-ui";
+import type {
+  SiteNavItem,
+  ContactConfig,
+} from "@parkerburgess/wandering-parker-ui";
 
 const navItems: SiteNavItem[] = [
   { label: "Dashboard", href: "/" },
@@ -37,13 +44,25 @@ export default async function RootLayout({
   const userName = await getUserName();
   await dal.upsertUserProfile(userId, userName ?? userId);
 
+  const contact: ContactConfig = {
+    endpoint: `${process.env.AUTH_SERVICE_URL ?? "http://localhost:3001"}/api/contact`,
+    sourceApp: "Fly Fish Tracker",
+    turnstileSiteKey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
+    userEmail: (await getUserEmail()) ?? undefined,
+  };
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen`}
       >
         <ThemeProvider>
-          <Header userName={userName ?? userId} brandText="Fly Fish Tracker" navItems={navItems} />
+          <Header
+            userName={userName ?? userId}
+            brandText="Fly Fish Tracker"
+            navItems={navItems}
+            contact={contact}
+          />
           <main className="max-w-6xl mx-auto px-4 py-8">
             {children}
           </main>
