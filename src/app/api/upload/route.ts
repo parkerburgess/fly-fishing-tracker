@@ -1,38 +1,63 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserId } from "@parkerburgess/wandering-parker-server";
 import dal from "@/lib/dal";
-import { writeFile } from "fs/promises";
-import path from "path";
-import { randomUUID } from "crypto";
+import { OutingNotFoundError } from "@/lib/dal/errors";
+import { badRequest, forbidden } from "@/lib/api-responses";
+import {
+  MAX_CAPTION_LENGTH,
+  MAX_PHOTO_BYTES,
+  deletePhotoFile,
+  extensionForMimeType,
+  savePhoto,
+} from "@/lib/photo-storage";
 
 export async function POST(req: NextRequest) {
   const userId = await getUserId();
 
   const formData = await req.formData();
-  const file = formData.get("file") as File | null;
-  const outingIdRaw = formData.get("outingId") as string | null;
-  const caption = formData.get("caption") as string | null;
+  const file = formData.get("file");
+  const outingIdRaw = formData.get("outingId");
+  const captionRaw = formData.get("caption");
 
-  if (!file || !outingIdRaw) {
-    return NextResponse.json({ error: "File and outingId required" }, { status: 400 });
+  if (!(file instanceof File) || typeof outingIdRaw !== "string") {
+    return badRequest("File and outingId required");
   }
 
   const outingId = Number(outingIdRaw);
   if (!Number.isInteger(outingId)) {
-    return NextResponse.json({ error: "Invalid outingId" }, { status: 400 });
+    return badRequest("Invalid outingId");
   }
 
-  const ext = path.extname(file.name) || ".jpg";
-  const filename = `${randomUUID()}${ext}`;
-  const bytes = new Uint8Array(await file.arrayBuffer());
-  const uploadPath = path.join(process.cwd(), "public", "uploads", filename);
+  const caption = typeof captionRaw === "string" && captionRaw.length > 0 ? captionRaw : null;
+  if (caption !== null && caption.length > MAX_CAPTION_LENGTH) {
+    return badRequest(`Caption must be ${MAX_CAPTION_LENGTH} characters or fewer`);
+  }
 
-  await writeFile(uploadPath, bytes);
+  const extension = extensionForMimeType(file.type);
+  if (!extension) {
+    return badRequest("Only JPEG, PNG, WebP, GIF or HEIC images can be uploaded");
+  }
+
+  if (file.size > MAX_PHOTO_BYTES) {
+    return badRequest("Photos must be 10 MB or smaller");
+  }
+
+  // Check ownership before anything touches the disk, so a request against
+  // someone else's outing can't leave an orphaned file behind.
+  if (!(await dal.ownsOuting(userId, outingId))) {
+    return forbidden("Not authorized");
+  }
+
+  const filename = await savePhoto(new Uint8Array(await file.arrayBuffer()), extension);
 
   try {
     const photo = await dal.addPhoto(userId, outingId, { filename, caption });
     return NextResponse.json({ photo });
-  } catch {
-    return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+  } catch (error) {
+    await deletePhotoFile(filename);
+    if (error instanceof OutingNotFoundError) {
+      return forbidden("Not authorized");
+    }
+    throw error;
   }
 }

@@ -36,10 +36,32 @@ export function DashboardClient({
     .sort((a, b) => b.dateKey.localeCompare(a.dateKey))
     .slice(0, 5);
 
+  // #region Tailwind utility consts
+  const pageHeaderCls = "flex justify-between items-center mb-6";
+  const titleCls = "text-2xl font-bold";
+  const statsGridCls = "grid grid-cols-2 md:grid-cols-5 gap-4 mb-8";
+  const statCardCls = "text-center";
+  const statValueCls = "text-2xl font-bold";
+  const caughtValueCls = "text-2xl font-bold text-green-600";
+  const avgValueCls = "text-2xl font-bold text-blue-600";
+  const bestValueCls = "text-2xl font-bold text-purple-600";
+  const statLabelCls = "text-xs text-gray-500";
+  const chartCardCls = "mb-8";
+  const chartHeadingCls = "font-semibold mb-4";
+  const recentHeadingCls = "text-lg font-semibold mb-3";
+  const recentListCls = "divide-y divide-gray-100";
+  const recentRowCls = "py-3 flex justify-between items-center";
+  const outingLinkCls = "font-medium text-blue-600 hover:underline cursor-pointer";
+  const recentMetaCls = "text-xs text-gray-500";
+  const userLinkCls = "hover:underline cursor-pointer";
+  const recentScoreCls = "font-semibold text-blue-600";
+  const emptyTextCls = "py-8 text-center text-gray-500";
+  // #endregion
+
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+      <div className={pageHeaderCls}>
+        <h1 className={titleCls}>Dashboard</h1>
         <ScopeToggle
           count={totalOutings}
           showMine={showMine}
@@ -48,57 +70,57 @@ export function DashboardClient({
         />
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-        <Card className="text-center">
-          <p className="text-2xl font-bold">{totalOutings}</p>
-          <p className="text-xs text-gray-500">Outings</p>
+      <div className={statsGridCls}>
+        <Card className={statCardCls}>
+          <p className={statValueCls}>{totalOutings}</p>
+          <p className={statLabelCls}>Outings</p>
         </Card>
-        <Card className="text-center">
-          <p className="text-2xl font-bold text-green-600">{totalCaught}</p>
-          <p className="text-xs text-gray-500">Fish Caught</p>
+        <Card className={statCardCls}>
+          <p className={caughtValueCls}>{totalCaught}</p>
+          <p className={statLabelCls}>Fish Caught</p>
         </Card>
-        <Card className="text-center">
-          <p className="text-2xl font-bold text-blue-600">{avgScore}</p>
-          <p className="text-xs text-gray-500">Avg Score</p>
+        <Card className={statCardCls}>
+          <p className={avgValueCls}>{avgScore}</p>
+          <p className={statLabelCls}>Avg Score</p>
         </Card>
-        <Card className="text-center">
-          <p className="text-2xl font-bold text-purple-600">{bestScore}</p>
-          <p className="text-xs text-gray-500">Best Score</p>
+        <Card className={statCardCls}>
+          <p className={bestValueCls}>{bestScore}</p>
+          <p className={statLabelCls}>Best Score</p>
         </Card>
-        <Card className="text-center">
-          <p className="text-2xl font-bold">{totalHours}</p>
-          <p className="text-xs text-gray-500">Hours Fished</p>
+        <Card className={statCardCls}>
+          <p className={statValueCls}>{totalHours}</p>
+          <p className={statLabelCls}>Hours Fished</p>
         </Card>
       </div>
 
       {chartData.length > 1 && (
-        <Card className="mb-8">
-          <h2 className="font-semibold mb-4">Score Trend</h2>
+        <Card className={chartCardCls}>
+          <h2 className={chartHeadingCls}>Score Trend</h2>
           <ScoreTrendChart data={chartData} />
         </Card>
       )}
 
-      <h2 className="text-lg font-semibold mb-3">Recent Outings</h2>
+      <h2 className={recentHeadingCls}>Recent Outings</h2>
       <Card>
-        <div className="divide-y divide-gray-100">
+        <div className={recentListCls}>
           {recent.map((outing) => (
-            <div key={outing.id} className="py-3 flex justify-between items-center">
+            <div key={outing.id} className={recentRowCls}>
               <div>
-                <Link href={`/outings/${outing.id}`} className="font-medium text-blue-600 hover:underline">
+                <Link href={`/outings/${outing.id}`} className={outingLinkCls}>
                   {outing.location}
                 </Link>
-                <p className="text-xs text-gray-500">
+                <p className={recentMetaCls}>
                   {outing.longDate} by{" "}
-                  <Link href={`/users/${outing.userId}`} className="hover:underline">
+                  <Link href={`/users/${outing.userId}`} className={userLinkCls}>
                     {outing.userName}
                   </Link>
                 </p>
               </div>
-              <span className="font-semibold text-blue-600">{outing.score} pts</span>
+              <span className={recentScoreCls}>{outing.score} pts</span>
             </div>
           ))}
           {recent.length === 0 && (
-            <p className="py-8 text-center text-gray-500">No outings yet.</p>
+            <p className={emptyTextCls}>No outings yet.</p>
           )}
         </div>
       </Card>

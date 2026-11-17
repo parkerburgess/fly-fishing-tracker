@@ -8,6 +8,7 @@ import type {
   UserProfile,
 } from "@/types";
 import type { IDataAccess } from "./IDataAccess";
+import { OutingNotFoundError } from "./errors";
 
 type OutingRow = {
   OutingId: number;
@@ -191,7 +192,7 @@ export class SqlDataAccess implements IDataAccess {
         OUTPUT ${OUTING_OUTPUT_COLUMNS}
         WHERE OutingId = @id AND UserId = @userId
       `);
-    if (!result.recordset[0]) throw new Error(`Outing ${id} not found`);
+    if (!result.recordset[0]) throw new OutingNotFoundError(id);
     return toOuting(result.recordset[0]);
   }
 
@@ -211,7 +212,12 @@ export class SqlDataAccess implements IDataAccess {
     outingId: number,
     data: { filename: string; caption: string | null }
   ): Promise<Photo> {
-    await this.assertOwnsOuting(userId, outingId);
+    // Outing ownership must be re-checked server-side on every photo upload —
+    // the client-submitted outingId is otherwise just a number an
+    // authenticated user could point at someone else's outing.
+    if (!(await this.ownsOuting(userId, outingId))) {
+      throw new OutingNotFoundError(outingId);
+    }
     const pool = await getPool();
     const result = await pool
       .request()
@@ -245,21 +251,23 @@ export class SqlDataAccess implements IDataAccess {
       .request()
       .input("userId", userId)
       .input("displayName", displayName)
+      // HOLDLOCK makes the match-then-insert atomic. Without it, two
+      // concurrent first requests from a new user can both take the NOT
+      // MATCHED branch and one fails on PK_UserProfile. The MATCHED branch
+      // only writes when the name actually changed, so the usual page load
+      // is a read.
       .query(`
-        MERGE flyfishing.UserProfile AS target
-        USING (SELECT @userId AS UserId) AS source
-          ON target.UserId = source.UserId
-        WHEN MATCHED THEN
-          UPDATE SET DisplayName = @displayName
+        MERGE flyfishing.UserProfile WITH (HOLDLOCK) AS UP
+        USING (SELECT @userId AS UserId, @displayName AS DisplayName) AS SRC
+          ON UP.UserId = SRC.UserId
+        WHEN MATCHED AND UP.DisplayName <> SRC.DisplayName THEN
+          UPDATE SET DisplayName = SRC.DisplayName
         WHEN NOT MATCHED THEN
-          INSERT (UserId, DisplayName) VALUES (@userId, @displayName);
+          INSERT (UserId, DisplayName) VALUES (SRC.UserId, SRC.DisplayName);
       `);
   }
 
-  // Outing ownership must be re-checked server-side on every photo upload —
-  // the client-submitted outingId is otherwise just a number an
-  // authenticated user could point at someone else's outing.
-  private async assertOwnsOuting(userId: string, outingId: number): Promise<void> {
+  async ownsOuting(userId: string, outingId: number): Promise<boolean> {
     const pool = await getPool();
     const result = await pool
       .request()
@@ -269,8 +277,6 @@ export class SqlDataAccess implements IDataAccess {
         SELECT OutingId FROM flyfishing.Outing
         WHERE OutingId = @outingId AND UserId = @userId
       `);
-    if (result.recordset.length === 0) {
-      throw new Error(`Outing ${outingId} not found`);
-    }
+    return result.recordset.length > 0;
   }
 }

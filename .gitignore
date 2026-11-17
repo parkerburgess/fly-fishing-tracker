@@ -20,6 +20,9 @@
 # production
 /build
 
+# user-uploaded photos (see src/lib/photo-storage.ts)
+/uploads
+
 # misc
 .DS_Store
 *.pem

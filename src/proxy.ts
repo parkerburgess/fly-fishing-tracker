@@ -44,5 +44,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|uploads|api/auth).*)"],
+  // /uploads is deliberately NOT excluded: photos are served by a route
+  // handler and need the same auth check as the pages that show them.
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|api/auth).*)"],
 };

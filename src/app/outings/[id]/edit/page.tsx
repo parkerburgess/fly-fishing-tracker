@@ -28,9 +28,14 @@ export default async function EditOutingPage({
     return updateOuting(id, formData);
   }
 
+  // #region Tailwind utility consts
+  const pageCls = "max-w-2xl mx-auto";
+  const titleCls = "text-2xl font-bold mb-6";
+  // #endregion
+
   return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Edit Outing</h1>
+    <div className={pageCls}>
+      <h1 className={titleCls}>Edit Outing</h1>
       <OutingForm
         action={handleUpdate}
         initialData={initialData}

@@ -51,11 +51,14 @@ export default async function RootLayout({
     userEmail: (await getUserEmail()) ?? undefined,
   };
 
+  // #region Tailwind utility consts
+  const bodyCls = `${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen`;
+  const mainCls = "max-w-6xl mx-auto px-4 py-8";
+  // #endregion
+
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen`}
-      >
+      <body className={bodyCls}>
         <ThemeProvider>
           <Header
             userName={userName ?? userId}
@@ -63,7 +66,7 @@ export default async function RootLayout({
             navItems={navItems}
             contact={contact}
           />
-          <main className="max-w-6xl mx-auto px-4 py-8">
+          <main className={mainCls}>
             {children}
           </main>
         </ThemeProvider>

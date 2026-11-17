@@ -82,10 +82,33 @@ export function ReportsClient({
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([, data]) => data);
 
+  // #region Tailwind utility consts
+  const pageHeaderCls = "flex justify-between items-center mb-6";
+  const titleCls = "text-2xl font-bold";
+  const sectionsCls = "space-y-8";
+  const emptyTextCls = "text-center text-gray-500 py-8";
+  const sectionHeadingCls = "font-semibold mb-4";
+  const totalsGridCls = "grid grid-cols-3 gap-4 mt-4 text-center";
+  const caughtTotalCls = "text-2xl font-bold text-green-600";
+  const lostTotalCls = "text-2xl font-bold text-yellow-600";
+  const missedTotalCls = "text-2xl font-bold text-red-600";
+  const totalLabelCls = "text-xs text-gray-500";
+  const tableScrollCls = "overflow-x-auto";
+  const tableCls = "w-full text-sm";
+  const headerRowCls = "border-b border-gray-200";
+  const headerCellCls = "text-left py-2 px-3 font-medium text-gray-500";
+  const bodyRowCls = "border-b border-gray-100";
+  const scoreCellCls = "py-2 px-3 font-semibold";
+  const caughtCellCls = "py-2 px-3 text-green-600";
+  const lostCellCls = "py-2 px-3 text-yellow-600";
+  const missedCellCls = "py-2 px-3 text-red-600";
+  const cellCls = "py-2 px-3";
+  // #endregion
+
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Reports</h1>
+      <div className={pageHeaderCls}>
+        <h1 className={titleCls}>Reports</h1>
         <ScopeToggle
           count={outings.length}
           showMine={showMine}
@@ -94,56 +117,56 @@ export function ReportsClient({
         />
       </div>
 
-      <div className="space-y-8">
+      <div className={sectionsCls}>
       {outings.length === 0 ? (
         <Card>
-          <p className="text-center text-gray-500 py-8">No data to display.</p>
+          <p className={emptyTextCls}>No data to display.</p>
         </Card>
       ) : (
         <>
           {scoreTrend.length > 1 && (
             <Card>
-              <h2 className="font-semibold mb-4">Score Trend Over Time</h2>
+              <h2 className={sectionHeadingCls}>Score Trend Over Time</h2>
               <ScoreTrendChart data={scoreTrend} />
             </Card>
           )}
 
           <Card>
-            <h2 className="font-semibold mb-4">Catch Breakdown</h2>
+            <h2 className={sectionHeadingCls}>Catch Breakdown</h2>
             <CatchBreakdownChart data={catchBreakdown} />
-            <div className="grid grid-cols-3 gap-4 mt-4 text-center">
+            <div className={totalsGridCls}>
               <div>
-                <p className="text-2xl font-bold text-green-600">{totalCaught}</p>
-                <p className="text-xs text-gray-500">Total Caught</p>
+                <p className={caughtTotalCls}>{totalCaught}</p>
+                <p className={totalLabelCls}>Total Caught</p>
               </div>
               <div>
-                <p className="text-2xl font-bold text-yellow-600">{totalLost}</p>
-                <p className="text-xs text-gray-500">Total Lost</p>
+                <p className={lostTotalCls}>{totalLost}</p>
+                <p className={totalLabelCls}>Total Lost</p>
               </div>
               <div>
-                <p className="text-2xl font-bold text-red-600">{totalMissed}</p>
-                <p className="text-xs text-gray-500">Total Missed</p>
+                <p className={missedTotalCls}>{totalMissed}</p>
+                <p className={totalLabelCls}>Total Missed</p>
               </div>
             </div>
           </Card>
 
           <Card>
-            <h2 className="font-semibold mb-4">Location Stats</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            <h2 className={sectionHeadingCls}>Location Stats</h2>
+            <div className={tableScrollCls}>
+              <table className={tableCls}>
                 <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-2 px-3 font-medium text-gray-500">Location</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-500">Outings</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-500">Avg Score</th>
+                  <tr className={headerRowCls}>
+                    <th className={headerCellCls}>Location</th>
+                    <th className={headerCellCls}>Outings</th>
+                    <th className={headerCellCls}>Avg Score</th>
                   </tr>
                 </thead>
                 <tbody>
                   {locationStats.map((loc) => (
-                    <tr key={loc.location} className="border-b border-gray-100">
-                      <td className="py-2 px-3">{loc.location}</td>
-                      <td className="py-2 px-3">{loc.outings}</td>
-                      <td className="py-2 px-3 font-semibold">{loc.avgScore}</td>
+                    <tr key={loc.location} className={bodyRowCls}>
+                      <td className={cellCls}>{loc.location}</td>
+                      <td className={cellCls}>{loc.outings}</td>
+                      <td className={scoreCellCls}>{loc.avgScore}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -152,28 +175,28 @@ export function ReportsClient({
           </Card>
 
           <Card>
-            <h2 className="font-semibold mb-4">Monthly Aggregation</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            <h2 className={sectionHeadingCls}>Monthly Aggregation</h2>
+            <div className={tableScrollCls}>
+              <table className={tableCls}>
                 <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-2 px-3 font-medium text-gray-500">Month</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-500">Outings</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-500">Caught</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-500">Lost</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-500">Missed</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-500">Avg Score</th>
+                  <tr className={headerRowCls}>
+                    <th className={headerCellCls}>Month</th>
+                    <th className={headerCellCls}>Outings</th>
+                    <th className={headerCellCls}>Caught</th>
+                    <th className={headerCellCls}>Lost</th>
+                    <th className={headerCellCls}>Missed</th>
+                    <th className={headerCellCls}>Avg Score</th>
                   </tr>
                 </thead>
                 <tbody>
                   {monthlyData.map((m) => (
-                    <tr key={m.label} className="border-b border-gray-100">
-                      <td className="py-2 px-3">{m.label}</td>
-                      <td className="py-2 px-3">{m.outings}</td>
-                      <td className="py-2 px-3 text-green-600">{m.caught}</td>
-                      <td className="py-2 px-3 text-yellow-600">{m.lost}</td>
-                      <td className="py-2 px-3 text-red-600">{m.missed}</td>
-                      <td className="py-2 px-3 font-semibold">
+                    <tr key={m.label} className={bodyRowCls}>
+                      <td className={cellCls}>{m.label}</td>
+                      <td className={cellCls}>{m.outings}</td>
+                      <td className={caughtCellCls}>{m.caught}</td>
+                      <td className={lostCellCls}>{m.lost}</td>
+                      <td className={missedCellCls}>{m.missed}</td>
+                      <td className={scoreCellCls}>
                         {Math.round(m.totalScore / m.outings)}
                       </td>
                     </tr>

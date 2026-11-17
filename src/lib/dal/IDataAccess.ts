@@ -14,9 +14,12 @@ export interface IDataAccess {
   getOutingsByUser(userId: string): Promise<Outing[]>;
   getOuting(id: number): Promise<OutingDetail | null>;
   createOuting(userId: string, data: OutingInput): Promise<Outing>;
+  // Throws OutingNotFoundError if the outing doesn't exist or isn't the user's.
   updateOuting(userId: string, id: number, data: OutingInput): Promise<Outing>;
   deleteOuting(userId: string, id: number): Promise<void>;
+  ownsOuting(userId: string, outingId: number): Promise<boolean>;
 
+  // Throws OutingNotFoundError if the user doesn't own the outing.
   addPhoto(
     userId: string,
     outingId: number,

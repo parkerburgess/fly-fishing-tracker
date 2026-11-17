@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { format } from "date-fns";
 import { Card, Input, Select, Textarea, Button } from "@parkerburgess/wandering-parker-ui";
 import { WEATHER_OPTIONS, WATER_CONDITIONS } from "@/lib/constants";
 import { calculateScore } from "@/lib/scoring";
 import type { OutingFormDto } from "@/dto";
+
+const SAVE_FAILED_MESSAGE = "Couldn't save the outing. Please try again.";
 
 export function OutingForm({
   action,
@@ -22,7 +25,13 @@ export function OutingForm({
   const [loading, setLoading] = useState(false);
 
   const score = calculateScore(caught, lost, missed);
-  const today = new Date().toISOString().split("T")[0];
+  // The user's local date, not the UTC date toISOString() would give.
+  const today = format(new Date(), "yyyy-MM-dd");
+
+  function showError(message: string) {
+    setError(message);
+    setLoading(false);
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -30,23 +39,42 @@ export function OutingForm({
     setError("");
 
     const formData = new FormData(e.currentTarget);
-    const result = await action(formData);
 
-    if (result?.error) {
-      setError(result.error);
-      setLoading(false);
+    // On success the action redirects, so loading stays on until the new
+    // page renders. It's only reset when we stay on this form.
+    try {
+      const result = await action(formData);
+      if (result?.error) {
+        showError(result.error);
+      }
+    } catch {
+      // Thrown when the server rejects the request outright, e.g. the
+      // read-only guest account (proxy 403) or a database error.
+      showError(SAVE_FAILED_MESSAGE);
     }
   }
+
+  // #region Tailwind utility consts
+  const errorBannerCls = "mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm";
+  const formCls = "space-y-6";
+  const twoColumnRowCls = "grid grid-cols-1 md:grid-cols-2 gap-4";
+  const countsRowCls = "grid grid-cols-3 gap-4";
+  const scorePreviewCls = "bg-blue-50 rounded-lg p-4 text-center";
+  const scorePreviewLabelCls = "text-sm text-blue-600 font-medium";
+  const scorePreviewValueCls = "text-3xl font-bold text-blue-700";
+  const scorePreviewFormulaCls = "text-xs text-blue-500 mt-1";
+  const submitButtonCls = "w-full";
+  // #endregion
 
   return (
     <Card>
       {error && (
-        <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
+        <div className={errorBannerCls}>
           {error}
         </div>
       )}
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <form onSubmit={handleSubmit} className={formCls}>
+        <div className={twoColumnRowCls}>
           <Input
             id="date"
             name="date"
@@ -60,12 +88,13 @@ export function OutingForm({
             id="location"
             name="location"
             label="Location"
+            maxLength={200}
             defaultValue={initialData?.location}
             required
           />
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className={countsRowCls}>
           <Input
             id="caught"
             name="caught"
@@ -95,15 +124,15 @@ export function OutingForm({
           />
         </div>
 
-        <div className="bg-blue-50 rounded-lg p-4 text-center">
-          <span className="text-sm text-blue-600 font-medium">Live Score Preview</span>
-          <p className="text-3xl font-bold text-blue-700">{score} pts</p>
-          <p className="text-xs text-blue-500 mt-1">
+        <div className={scorePreviewCls}>
+          <span className={scorePreviewLabelCls}>Live Score Preview</span>
+          <p className={scorePreviewValueCls}>{score} pts</p>
+          <p className={scorePreviewFormulaCls}>
             {caught}x5 + {lost}x3 + {missed}x1
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className={twoColumnRowCls}>
           <Select
             id="weather"
             name="weather"
@@ -120,7 +149,7 @@ export function OutingForm({
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className={twoColumnRowCls}>
           <Input
             id="waterTemp"
             name="waterTemp"
@@ -146,7 +175,7 @@ export function OutingForm({
           defaultValue={initialData?.notes || ""}
         />
 
-        <Button type="submit" disabled={loading} className="w-full">
+        <Button type="submit" disabled={loading} className={submitButtonCls}>
           {loading ? "Saving..." : submitLabel}
         </Button>
       </form>

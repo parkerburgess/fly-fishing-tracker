@@ -67,14 +67,17 @@ export function OutingsTable({
   const headerRowCls = "border-b border-gray-200";
   const rowCls =
     "border-1 border-transparent border-b-gray-100 " +
-    "hover:bg-gray-400";
+    "hover:bg-gray-400 cursor-pointer";
+  const headerAreaCls = "flex justify-between items-center mb-6";
+  const tableCardCls = "overflow-x-auto";
+  const tableCls = "w-full text-sm";
   const cellCls = "py-3 px-4";
   const emptyRowCls = "py-8 text-center text-gray-500";
   // #endregion
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className={headerAreaCls}>
         <h1 className={headingCls}>
           {showMine && currentUserId ? "My Outings" : "All Outings"}
         </h1>
@@ -86,8 +89,8 @@ export function OutingsTable({
         />
       </div>
 
-      <Card className="overflow-x-auto">
-        <table className="w-full text-sm">
+      <Card className={tableCardCls}>
+        <table className={tableCls}>
           <thead>
             <tr className={headerRowCls}>
               {COLUMNS.map((column) => (
